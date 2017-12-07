@@ -8,8 +8,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.example.juanmi.firebase.model.Cancion;
 import com.example.juanmi.firebase.model.Disco;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,9 +24,9 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText text_titulo, text_anyo;
-    Button boton_anyadir, boton_mostrar;
-    ListView lista;
+    EditText text_cancion;
+    Button boton_anyadir;
+    Spinner spin_grupo;
 
     DatabaseReference bbdd;
 
@@ -33,11 +35,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        text_titulo = (EditText) findViewById(R.id.editText);
-        text_anyo = (EditText) findViewById(R.id.editText2);
+        text_cancion = (EditText) findViewById(R.id.editText);
+        spin_grupo = (Spinner) findViewById(R.id.spinner);
         boton_anyadir = (Button) findViewById(R.id.button);
-        boton_mostrar = (Button) findViewById(R.id.button2);
-        lista = (ListView)findViewById(R.id.listView);
 
         bbdd = FirebaseDatabase.getInstance().getReference(getString(R.string.nodo_discos));
 
@@ -50,13 +50,12 @@ public class MainActivity extends AppCompatActivity {
 
                 for(DataSnapshot datasnapshot: dataSnapshot.getChildren()){
                     Disco disco = datasnapshot.getValue(Disco.class);
-
                     String titulo = disco.getTitulo();
                     listado.add(titulo);
                 }
 
                 adaptador = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1,listado);
-                lista.setAdapter(adaptador);
+                spin_grupo.setAdapter(adaptador);
 
             }
 
@@ -66,53 +65,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        boton_anyadir.setOnClickListener(new View.OnClickListener(){
+       boton_anyadir.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
-                String titulo = text_titulo.getText().toString();
-                String anyo = text_anyo.getText().toString();
+                String cancion = text_cancion.getText().toString();
+                String disco = spin_grupo.getSelectedItem().toString();
 
-                if(!TextUtils.isEmpty(titulo)){
-                    if(!TextUtils.isEmpty(anyo)) {
+                if(!TextUtils.isEmpty(cancion)){
+                   Cancion c = new Cancion(cancion,disco);
 
-                        Disco d = new Disco(titulo,anyo);
+                   DatabaseReference bbdd2 = FirebaseDatabase.getInstance().getReference(getString(R.string.nodo_canciones));
 
-                        String clave = bbdd.push().getKey();
+                   String clave = bbdd2.push().getKey();
 
-                        bbdd.child(clave).setValue(d);
+                   bbdd2.child(clave).setValue(c);
 
-                        Toast.makeText(MainActivity.this, "Disco añadido", Toast.LENGTH_LONG).show();
-                    }
-                    else{
-                        Toast.makeText(MainActivity.this, "Debes de introducir un anyo", Toast.LENGTH_LONG).show();
-                    }
+                   Toast.makeText(MainActivity.this, "Canción añadida", Toast.LENGTH_LONG).show();
+
                 }
                 else {
-                    Toast.makeText(MainActivity.this, "Debes de introducir un título", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Debes de introducir una canción", Toast.LENGTH_LONG).show();
                 }
-
-            }
-        });
-
-        boton_mostrar.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View view){
-
-                Query q=bbdd.orderByChild(getString(R.string.campo_anyo)).equalTo("1995");
-
-                q.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        int cont=0;
-                        for(DataSnapshot datasnapshot: dataSnapshot.getChildren()){
-                            cont++;
-                            Toast.makeText(MainActivity.this, "He encontrado "+cont, Toast.LENGTH_LONG).show();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
 
             }
         });

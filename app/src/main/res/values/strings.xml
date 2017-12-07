@@ -3,6 +3,7 @@
 
     <!-- Nodos Firebase -->
     <string name="nodo_discos">discos</string>
+    <string name="nodo_canciones">canciones</string>
 
     <!-- Campos de los nodos -->
     <string name="campo_titulo">titulo</string>
